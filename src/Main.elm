@@ -138,11 +138,69 @@ view model =
           <|
             case model.status of
                 Loaded ->
-                    [ text "loaded" ]
+                    [ weekView model ]
 
                 Loading ->
                     [ text "loading data..." ]
 
                 Errored ->
                     [ text "error loading the data" ]
+        ]
+
+
+weekView : Model -> Html Msg
+weekView model =
+    let
+        days =
+            List.reverse <| List.take 7 <| model.dataset
+    in
+    div [] (List.map dayView days)
+
+
+dayView : Day -> Html Msg
+dayView day =
+    let
+        level : Int
+        level =
+            case List.maximum [ day.elm, day.willow, day.poplar, day.hazel, day.alder, day.oak, day.beech, day.birch, day.mugwort, day.ragweed, day.plantain, day.sorrel, day.rye, day.grass ] of
+                Just a ->
+                    a
+
+                Nothing ->
+                    0
+
+        levelClass : String
+        levelClass =
+            case level of
+                3 ->
+                    "bg-red-500"
+
+                2 ->
+                    "bg-purple-500"
+
+                1 ->
+                    "bg-green-500"
+
+                _ ->
+                    "bg-gray-300"
+
+        levelText =
+            case level of
+                3 ->
+                    "strong"
+
+                2 ->
+                    "medium"
+
+                1 ->
+                    "light"
+
+                _ ->
+                    "none"
+    in
+    div [ class "pb-8" ]
+        [ div [ class (levelClass ++ " flex flex-col items-center justify-center font-bold uppercase text-4xl md:text-2xl p-10 rounded-lg text-white") ]
+            [ div [ class "font-thin" ] [ text day.date ]
+            , div [ class "font-extrabold tracking-tight" ] [ text ("Level " ++ String.fromInt level) ]
+            ]
         ]
