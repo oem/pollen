@@ -134,7 +134,7 @@ view model =
         [ div [ class "container p-4 md:p-6 mx-auto max-w-2xl" ]
             [ h1 [ class "text-3xl font-black tracking-tight pt-10 filter drop-shadow-xl" ]
                 [ text "Pollen Levels" ]
-            , h2 [ class "text-3xl font-thin tracking-wider pb-14 drop-shadow-xl uppercase" ]
+            , h2 [ class "text-3xl font-thin tracking-wider pb-14 filter drop-shadow-xl uppercase" ]
                 [ text "in Hamburg" ]
             , div
                 []
