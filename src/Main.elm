@@ -233,7 +233,7 @@ dayView padding day =
     in
     div [ class "pb-14" ]
         [ div [ class (levelClass ++ " flex flex-col items-center justify-center font-bold uppercase text-5xl md:text-4xl rounded-lg text-white shadow-2xl p-" ++ String.fromInt padding) ]
-            [ div [ class "text-lg font-thin tracking-tighter uppercase filter drop-shadow-md" ] [ text day.formatted_date ]
+            [ div [ class "text-lg font-light tracking-tighter uppercase filter drop-shadow-md" ] [ text day.formatted_date ]
             , div [ class "font-heavy tracking-tight" ] [ text ("Level " ++ String.fromInt level) ]
             , div [ class "font-thin" ] [ text levelText ]
             ]
