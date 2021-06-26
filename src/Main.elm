@@ -169,7 +169,7 @@ weekView model =
     in
     div []
         [ todayView today
-        , div [] (List.map (dayView 6) forecast)
+        , div [] (List.map (dayView 6 "lg") forecast)
         ]
 
 
@@ -179,7 +179,7 @@ todayView maybeDay =
         day =
             case maybeDay of
                 Just a ->
-                    dayView 10 { a | formatted_date = "today" }
+                    dayView 10 "2xl" { a | formatted_date = "today" }
 
                 Nothing ->
                     p [] [ text "found no data for today" ]
@@ -187,8 +187,8 @@ todayView maybeDay =
     day
 
 
-dayView : Int -> Day -> Html Msg
-dayView padding day =
+dayView : Int -> String -> Day -> Html Msg
+dayView padding shadow day =
     let
         level : Int
         level =
@@ -232,8 +232,8 @@ dayView padding day =
                     "none"
     in
     div [ class "pb-14" ]
-        [ div [ class (levelClass ++ " flex flex-col items-center justify-center font-bold uppercase text-5xl md:text-4xl rounded-lg text-white shadow-2xl p-" ++ String.fromInt padding) ]
-            [ div [ class "text-lg font-light tracking-tighter uppercase filter drop-shadow-md" ] [ text day.formatted_date ]
+        [ div [ class (levelClass ++ " flex flex-col items-center justify-center font-bold uppercase text-5xl md:text-4xl rounded-lg text-white shadow-" ++ shadow ++ " p-" ++ String.fromInt padding) ]
+            [ div [ class "text-lg font-light tracking-tighter uppercase filter drop-shadow-lg" ] [ text day.formatted_date ]
             , div [ class "font-heavy tracking-tight" ] [ text ("Level " ++ String.fromInt level) ]
             , div [ class "font-thin" ] [ text levelText ]
             ]
