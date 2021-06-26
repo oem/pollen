@@ -58,7 +58,7 @@ type alias Day =
     , sorrel : Int
     , rye : Int
     , grass : Int
-    , date : String
+    , formatted_date : String
     }
 
 
@@ -121,7 +121,7 @@ dayDecoder =
         |> required "sorrel" int
         |> required "rye" int
         |> required "grass" int
-        |> required "date" string
+        |> required "formatted_date" string
 
 
 
@@ -132,7 +132,7 @@ view : Model -> Html Msg
 view model =
     div [ class "container p-4 md:p-6 mx-auto max-w-6xl" ]
         [ h1 [ class "text-3xl font-black tracking-tight pb-4 pt-14" ]
-            [ text "Pollen in Hamburg" ]
+            [ text "Pollen Levels in Hamburg" ]
         , div
             []
           <|
@@ -198,9 +198,10 @@ dayView day =
                 _ ->
                     "none"
     in
-    div [ class "pb-8" ]
-        [ div [ class (levelClass ++ " flex flex-col items-center justify-center font-bold uppercase text-4xl md:text-2xl p-10 rounded-lg text-white") ]
-            [ div [ class "font-thin" ] [ text day.date ]
-            , div [ class "font-extrabold tracking-tight" ] [ text ("Level " ++ String.fromInt level) ]
+    div [ class "pb-14" ]
+        [ h2 [ class "text-lg font-thin tracking-wider pb-3 pt-3 uppercase" ] [ text day.formatted_date ]
+        , div [ class (levelClass ++ " flex flex-col items-center justify-center font-bold uppercase text-5xl md:text-4xl p-10 rounded-lg text-white shadow-lg") ]
+            [ div [ class "font-heavy tracking-tight" ] [ text ("Level " ++ String.fromInt level) ]
+            , div [ class "font-thin" ] [ text levelText ]
             ]
         ]
