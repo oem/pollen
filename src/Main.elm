@@ -171,7 +171,7 @@ weekView model =
     in
     div []
         [ todayView today
-        , div [] (List.map (dayView 6 "lg") forecast)
+        , div [ class "pb-80" ] (List.map (dayView 6 "lg") forecast)
         ]
 
 
