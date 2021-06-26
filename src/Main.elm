@@ -130,7 +130,7 @@ dayDecoder =
 
 view : Model -> Html Msg
 view model =
-    div [ class "bg-gray-500 text-white text-center" ]
+    div [ class "text-white text-center" ]
         [ div [ class "container p-4 md:p-6 mx-auto max-w-2xl" ]
             [ h1 [ class "text-3xl font-black tracking-tight pt-10 filter drop-shadow-xl" ]
                 [ text "Pollen Levels" ]
