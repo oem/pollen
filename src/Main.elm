@@ -130,7 +130,7 @@ dayDecoder =
 
 view : Model -> Html Msg
 view model =
-    div [ class "bg-gray-500 text-white" ]
+    div [ class "bg-gray-500 text-white text-center" ]
         [ div [ class "container p-4 md:p-6 mx-auto max-w-2xl" ]
             [ h1 [ class "text-3xl font-black tracking-tight pb-4 pt-14 filter drop-shadow-xl" ]
                 [ text "Pollen Levels in Hamburg" ]
@@ -201,7 +201,7 @@ dayView day =
                     "none"
     in
     div [ class "pb-14" ]
-        [ h2 [ class "text-lg font-thin tracking-wider pb-3 pt-3 uppercase filter drop-shadow-md" ] [ text day.formatted_date ]
+        [ h2 [ class "text-lg font-light tracking-wider pb-3 pt-3 uppercase filter drop-shadow-md" ] [ text day.formatted_date ]
         , div [ class (levelClass ++ " flex flex-col items-center justify-center font-bold uppercase text-5xl md:text-4xl p-10 rounded-lg text-white shadow-2xl") ]
             [ div [ class "font-heavy tracking-tight" ] [ text ("Level " ++ String.fromInt level) ]
             , div [ class "font-thin" ] [ text levelText ]
