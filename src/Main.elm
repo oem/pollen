@@ -179,7 +179,7 @@ todayView maybeDay =
         day =
             case maybeDay of
                 Just a ->
-                    dayView 8 { a | formatted_date = "today" }
+                    dayView 10 { a | formatted_date = "today" }
 
                 Nothing ->
                     p [] [ text "found no data for today" ]
