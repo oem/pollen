@@ -155,12 +155,40 @@ weekView model =
     let
         days =
             List.reverse <| List.take 7 <| model.dataset
+
+        today =
+            List.head days
+
+        forecast =
+            case List.tail days of
+                Just a ->
+                    a
+
+                Nothing ->
+                    []
     in
-    div [] (List.map dayView days)
+    div []
+        [ todayView today
+        , div [] (List.map (dayView 7) forecast)
+        ]
 
 
-dayView : Day -> Html Msg
-dayView day =
+todayView : Maybe Day -> Html Msg
+todayView maybeDay =
+    let
+        day =
+            case maybeDay of
+                Just a ->
+                    dayView 10 { a | formatted_date = "today" }
+
+                Nothing ->
+                    p [] [ text "found no data for today" ]
+    in
+    day
+
+
+dayView : Int -> Day -> Html Msg
+dayView padding day =
     let
         level : Int
         level =
@@ -183,8 +211,11 @@ dayView day =
                 1 ->
                     "bg-green-500"
 
-                _ ->
+                0 ->
                     "bg-gray-400"
+
+                _ ->
+                    "bg-black"
 
         levelText =
             case level of
@@ -201,8 +232,8 @@ dayView day =
                     "none"
     in
     div [ class "pb-14" ]
-        [ h2 [ class "text-lg font-light tracking-wider pb-3 pt-3 uppercase filter drop-shadow-md" ] [ text day.formatted_date ]
-        , div [ class (levelClass ++ " flex flex-col items-center justify-center font-bold uppercase text-5xl md:text-4xl p-10 rounded-lg text-white shadow-2xl") ]
+        [ h2 [ class "text-lg font-light tracking-wider uppercase filter drop-shadow-md py-3" ] [ text day.formatted_date ]
+        , div [ class (levelClass ++ " flex flex-col items-center justify-center font-bold uppercase text-5xl md:text-4xl rounded-lg text-white shadow-2xl p-" ++ String.fromInt padding) ]
             [ div [ class "font-heavy tracking-tight" ] [ text ("Level " ++ String.fromInt level) ]
             , div [ class "font-thin" ] [ text levelText ]
             ]
