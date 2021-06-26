@@ -130,7 +130,7 @@ dayDecoder =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container p-4 md:p-6 mx-auto max-w-6xl" ]
+    div [ class "container p-4 md:p-6 mx-auto max-w-2xl" ]
         [ h1 [ class "text-3xl font-black tracking-tight pb-4 pt-14" ]
             [ text "Pollen Levels in Hamburg" ]
         , div
