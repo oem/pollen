@@ -1,4 +1,4 @@
-module Week exposing (main)
+module Week exposing (Day, Model, Msg, init, update, view)
 
 import Browser
 import Html exposing (Html, div, h1, h2, h3, p, text)
@@ -58,6 +58,7 @@ type alias Day =
     , sorrel : Int
     , rye : Int
     , grass : Int
+    , day : String
     , formatted_date : String
     }
 
@@ -121,6 +122,7 @@ dayDecoder =
         |> required "sorrel" int
         |> required "rye" int
         |> required "grass" int
+        |> required "date" string
         |> required "formatted_date" string
 
 
@@ -130,26 +132,18 @@ dayDecoder =
 
 view : Model -> Html Msg
 view model =
-    div [ class "text-white text-center" ]
-        [ div [ class "container p-4 md:p-6 mx-auto max-w-2xl" ]
-            [ h1 [ class "text-3xl font-black tracking-tight pt-10 filter drop-shadow-xl" ]
-                [ text "Pollen Levels" ]
-            , h2 [ class "text-3xl font-thin tracking-wider pb-14 filter drop-shadow-xl uppercase" ]
-                [ text "in Hamburg" ]
-            , div
-                []
-              <|
-                case model.status of
-                    Loaded ->
-                        [ weekView model ]
+    div
+        []
+    <|
+        case model.status of
+            Loaded ->
+                [ weekView model ]
 
-                    Loading ->
-                        [ text "loading data..." ]
+            Loading ->
+                [ text "loading data..." ]
 
-                    Errored ->
-                        [ text "error loading the data" ]
-            ]
-        ]
+            Errored ->
+                [ text "error loading the data" ]
 
 
 weekView : Model -> Html Msg
