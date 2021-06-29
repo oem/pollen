@@ -1,46 +1,28 @@
 module Main exposing (main)
 
-import Browser
-import Html exposing (Html, div, h1, h2, h3, p, text)
-import Html.Attributes exposing (class)
+import Browser exposing (Document)
+import Browser.Navigation as Nav
+import Html exposing (Html, a, div, h1, h2, h3, p, text)
+import Html.Attributes exposing (class, classList, href)
 import Http
 import Json.Decode as Decode exposing (Decoder, int, list, maybe, string)
 import Json.Decode.Pipeline exposing (required)
-
-
-
--- MAIN
-
-
-main : Program () Model Msg
-main =
-    Browser.element
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = subscriptions
-        }
-
-
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( initialModel
-    , fetchLevels
-    )
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
+import Url exposing (Url)
+import Url.Parser as Parser exposing ((</>), Parser, s, string)
 
 
 
 -- MODEL
 
 
-initialModel : Model
-initialModel =
-    { dataset = [], status = Loading }
+type alias Model =
+    { page : Page
+    , key : Nav.Key
+    , url : Url
+    , dataset : List Day
+    , status : Status
+    , selectedDay : Maybe Day
+    }
 
 
 type alias Day =
@@ -58,20 +40,91 @@ type alias Day =
     , sorrel : Int
     , rye : Int
     , grass : Int
-    , formatted_date : String
+    , date : String
+    , formattedDate : String
     }
 
 
 type Status
     = Loading
-    | Errored
     | Loaded
+    | Errored
 
 
-type alias Model =
-    { dataset : List Day
-    , status : Status
-    }
+type Page
+    = WeekPage
+    | DayPage
+    | NotFoundPage
+
+
+type Route
+    = Week
+    | SelectedDay String
+
+
+
+-- MAIN
+
+
+init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
+    ( updateUrl url
+        { page = NotFoundPage
+        , key = key
+        , url = url
+        , dataset = []
+        , status = Loading
+        , selectedDay = Nothing
+        }
+    , fetchDataset
+    )
+
+
+updateUrl : Url -> Model -> Model
+updateUrl url model =
+    case Parser.parse parser url of
+        Just Week ->
+            { model | page = WeekPage }
+
+        Just (SelectedDay date) ->
+            { model | page = DayPage, selectedDay = stringToDay date model.dataset }
+
+        Nothing ->
+            { model | page = NotFoundPage }
+
+
+stringToDay : String -> List Day -> Maybe Day
+stringToDay date dataset =
+    List.filter (isDay date) dataset |> List.head
+
+
+isDay : String -> Day -> Bool
+isDay date day =
+    if day.date == date then
+        True
+
+    else
+        False
+
+
+parser : Parser (Route -> a) a
+parser =
+    Parser.oneOf
+        [ Parser.map Week Parser.top
+        , Parser.map SelectedDay (s "days" </> Parser.string)
+        ]
+
+
+main : Program () Model Msg
+main =
+    Browser.application
+        { init = init
+        , onUrlRequest = ClickedLink
+        , onUrlChange = ChangedUrl
+        , subscriptions = subscriptions
+        , update = update
+        , view = view
+        }
 
 
 
@@ -79,7 +132,9 @@ type alias Model =
 
 
 type Msg
-    = GotData (Result Http.Error (List Day))
+    = ClickedLink Browser.UrlRequest
+    | ChangedUrl Url
+    | GotData (Result Http.Error (List Day))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -88,10 +143,30 @@ update msg model =
         GotData result ->
             case result of
                 Ok data ->
-                    ( { model | status = Loaded, dataset = data }, Cmd.none )
+                    ( updateUrl model.url { model | status = Loaded, dataset = data }, Cmd.none )
 
                 Err _ ->
                     ( { model | status = Errored }, Cmd.none )
+
+        ClickedLink urlRequest ->
+            case urlRequest of
+                Browser.External href ->
+                    ( model, Nav.load href )
+
+                Browser.Internal url ->
+                    ( model, Nav.pushUrl model.key (Url.toString url) )
+
+        ChangedUrl url ->
+            ( updateUrl url model, Cmd.none )
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
+
+
+
+-- HTTP
 
 
 dataUrl : String
@@ -99,8 +174,8 @@ dataUrl =
     "https://raw.githubusercontent.com/oem/Hamburg.jl/main/src/pollen/levels.json"
 
 
-fetchLevels : Cmd Msg
-fetchLevels =
+fetchDataset : Cmd Msg
+fetchDataset =
     Http.get { url = dataUrl, expect = Http.expectJson GotData (list dayDecoder) }
 
 
@@ -121,34 +196,100 @@ dayDecoder =
         |> required "sorrel" int
         |> required "rye" int
         |> required "grass" int
-        |> required "formatted_date" string
+        |> required "date" Decode.string
+        |> required "formatted_date" Decode.string
 
 
 
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Document Msg
 view model =
-    div [ class "text-white text-center" ]
-        [ div [ class "container p-4 md:p-6 mx-auto max-w-2xl" ]
-            [ h1 [ class "text-3xl font-black tracking-tight pt-10 filter drop-shadow-xl" ]
+    let
+        subPage =
+            case model.page of
+                WeekPage ->
+                    weekView model
+
+                DayPage ->
+                    detailedDayView model
+
+                NotFoundPage ->
+                    div [] [ text "Sorry, I could not find what you were looking for." ]
+
+        content =
+            case model.status of
+                Loading ->
+                    div [] [ text "Loading data..." ]
+
+                Errored ->
+                    div [] [ text "Sorry, I could not load the pollen data." ]
+
+                Loaded ->
+                    subPage
+    in
+    { title = "Pollen levels in Hamburg"
+    , body =
+        [ headerView content ]
+    }
+
+
+headerView : Html Msg -> Html Msg
+headerView content =
+    div [ class "bg-gradient-to-b from-gray-500 via-gray-700 to-gray-500 bg-gray-500 min-h-screen" ]
+        [ div [ class "container p-4 md:p-6 mx-auto max-w-2xl text-white text-center" ]
+            [ h1 [ class "text-3xl font-black tracking-tight filter drop-shadow-lg pt-10" ]
                 [ text "Pollen Levels" ]
-            , h2 [ class "text-3xl font-thin tracking-wider pb-14 filter drop-shadow-xl uppercase" ]
+            , h2 [ class "text-3xl font-thin tracking-wider filter drop-shadow-lg uppercase pb-14" ]
                 [ text "in Hamburg" ]
-            , div
-                []
-              <|
-                case model.status of
-                    Loaded ->
-                        [ weekView model ]
-
-                    Loading ->
-                        [ text "loading data..." ]
-
-                    Errored ->
-                        [ text "error loading the data" ]
+            , content
             ]
+        ]
+
+
+detailedDayView : Model -> Html Msg
+detailedDayView model =
+    let
+        content =
+            case model.selectedDay of
+                Just day ->
+                    div []
+                        [ h3 [ class "uppercase tracking-wider font-black text-lg pb-10" ] [ text day.formattedDate ]
+                        , gridView day
+                        ]
+
+                Nothing ->
+                    p [] [ text "Sorry, I have no data for the selected day." ]
+    in
+    content
+
+
+gridView : Day -> Html Msg
+gridView day =
+    div [ class "grid grid-cols-3 gap-4" ]
+        [ cellView day.grass "grass"
+        , cellView day.elm "elm"
+        , cellView day.willow "willow"
+        , cellView day.poplar "poplar"
+        , cellView day.hazel "hazel"
+        , cellView day.alder "alder"
+        , cellView day.oak "oak"
+        , cellView day.beech "beech"
+        , cellView day.birch "birch"
+        , cellView day.mugwort "mugwort"
+        , cellView day.ragweed "ragweed"
+        , cellView day.plantain "plantain"
+        , cellView day.sorrel "sorrel"
+        , cellView day.rye "rye"
+        ]
+
+
+cellView : Int -> String -> Html Msg
+cellView level name =
+    div [ class (levelClass level ++ " flex flex-col items-center justify-center font-bold uppercase text-lg md:text-xl rounded-lg text-white shadow-lg p-6") ]
+        [ div [ class "font-black tracking-tight md:tracking-wider md:text-xl text-sm" ] [ text name ]
+        , div [ class "font-light" ] [ text (levelToString level) ]
         ]
 
 
@@ -181,7 +322,7 @@ todayView maybeDay =
         day =
             case maybeDay of
                 Just a ->
-                    dayView 10 "2xl" { a | formatted_date = "today" }
+                    dayView 10 "2xl" { a | formattedDate = "today" }
 
                 Nothing ->
                     p [] [ text "found no data for today" ]
@@ -189,9 +330,47 @@ todayView maybeDay =
     day
 
 
+levelClass : Int -> String
+levelClass level =
+    case level of
+        3 ->
+            "bg-red-500"
+
+        2 ->
+            "bg-purple-500"
+
+        1 ->
+            "bg-green-500"
+
+        0 ->
+            "bg-gray-400"
+
+        _ ->
+            "bg-black"
+
+
+levelToString : Int -> String
+levelToString level =
+    case level of
+        3 ->
+            "strong"
+
+        2 ->
+            "medium"
+
+        1 ->
+            "light"
+
+        _ ->
+            "none"
+
+
 dayView : Int -> String -> Day -> Html Msg
 dayView padding shadow day =
     let
+        url =
+            "/days/" ++ day.date
+
         level : Int
         level =
             case List.maximum [ day.elm, day.willow, day.poplar, day.hazel, day.alder, day.oak, day.beech, day.birch, day.mugwort, day.ragweed, day.plantain, day.sorrel, day.rye, day.grass ] of
@@ -200,43 +379,11 @@ dayView padding shadow day =
 
                 Nothing ->
                     0
-
-        levelClass : String
-        levelClass =
-            case level of
-                3 ->
-                    "bg-red-500"
-
-                2 ->
-                    "bg-purple-500"
-
-                1 ->
-                    "bg-green-500"
-
-                0 ->
-                    "bg-gray-400"
-
-                _ ->
-                    "bg-black"
-
-        levelText =
-            case level of
-                3 ->
-                    "strong"
-
-                2 ->
-                    "medium"
-
-                1 ->
-                    "light"
-
-                _ ->
-                    "none"
     in
-    div [ class "pb-14" ]
-        [ div [ class (levelClass ++ " flex flex-col items-center justify-center font-bold uppercase text-5xl md:text-4xl rounded-lg text-white shadow-" ++ shadow ++ " p-" ++ String.fromInt padding) ]
-            [ div [ class "text-lg font-light tracking-tighter uppercase filter drop-shadow-lg" ] [ text day.formatted_date ]
+    a [ class "mb-14 block", href url ]
+        [ div [ class (levelClass level ++ " flex flex-col items-center justify-center font-bold uppercase text-5xl md:text-4xl rounded-lg text-white shadow-" ++ shadow ++ " p-" ++ String.fromInt padding) ]
+            [ div [ class "text-lg font-light tracking-tighter uppercase filter drop-shadow-lg" ] [ text day.formattedDate ]
             , div [ class "font-heavy tracking-tight" ] [ text ("Level " ++ String.fromInt level) ]
-            , div [ class "font-thin" ] [ text levelText ]
+            , div [ class "font-thin" ] [ text (levelToString level) ]
             ]
         ]
