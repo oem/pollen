@@ -111,6 +111,8 @@ parser : Parser (Route -> a) a
 parser =
     Parser.oneOf
         [ Parser.map Week Parser.top
+        , Parser.map Week (s "pollen")
+        , Parser.map SelectedDay (s "pollen" </> s "days" </> Parser.string)
         , Parser.map SelectedDay (s "days" </> Parser.string)
         ]
 
