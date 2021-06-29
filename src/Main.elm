@@ -256,7 +256,7 @@ detailedDayView model =
         content =
             case model.selectedDay of
                 Just day ->
-                    div []
+                    div [ class "pb-10" ]
                         [ h3 [ class "uppercase tracking-wider font-black text-lg pb-10" ] [ text day.formattedDate ]
                         , gridView day
                         ]
