@@ -246,6 +246,21 @@ headerView content =
             , h2 [ class "text-3xl font-thin tracking-wider filter drop-shadow-lg uppercase pb-14" ]
                 [ text "in Hamburg" ]
             , content
+            , footerView
+            ]
+        ]
+
+
+footerView : Html Msg
+footerView =
+    div [ class "pb-8 text-left" ]
+        [ h2 [ class "text-2xl font-extrabold tracking-tight sm:text-4x1 pb-1" ] [ text "Sources" ]
+        , p []
+            [ text "The sourcecode for this dashboard can be found at "
+            , a [ class "font-extrabold", href "https://github.com/oem/pollen" ] [ text "github.com/oem/pollen" ]
+            , text " and "
+            , a [ class "font-extrabold", href "https://github.com/oem/Hamburg.jl" ] [ text "github.com/oem/Hamburg.jl" ]
+            , text ". "
             ]
         ]
 
@@ -314,7 +329,7 @@ weekView model =
     in
     div []
         [ todayView today
-        , div [ class "pb-40" ] (List.map (dayView 6 "lg") forecast)
+        , div [] (List.map (dayView 6 "lg") forecast)
         ]
 
 
@@ -371,7 +386,7 @@ dayView : Int -> String -> Day -> Html Msg
 dayView padding shadow day =
     let
         url =
-            "/days/" ++ day.date
+            "/pollen/days/" ++ day.date
 
         level : Int
         level =
