@@ -3,12 +3,12 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Html exposing (Html, a, div, h1, h2, h3, p, text)
-import Html.Attributes exposing (class, classList, href)
+import Html.Attributes exposing (class, href)
 import Http
-import Json.Decode as Decode exposing (Decoder, int, list, maybe, string)
+import Json.Decode as Decode exposing (Decoder, int, list)
 import Json.Decode.Pipeline exposing (required)
 import Url exposing (Url)
-import Url.Parser as Parser exposing ((</>), Parser, s, string)
+import Url.Parser as Parser exposing ((</>), Parser, s)
 
 
 
@@ -67,7 +67,7 @@ type Route
 
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url key =
+init _ url key =
     ( updateUrl url
         { page = NotFoundPage
         , key = key
@@ -163,7 +163,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
